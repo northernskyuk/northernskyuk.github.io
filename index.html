@@ -150,13 +150,7 @@ const redirectToSpotifyAuthorize = async () => {
         scope: scopes
     });
 
-    const link = document.createElement('a');
-    link.href = authUrl;
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link); // Clean up
+    window.open(authUrl).focus();
 };
 
 const token = retrieveAccessToken();
