@@ -10,8 +10,8 @@
     const hash = window.location.href;
 		const token = hash.substring(54);
 			window.opener.postMessage({type: 'spotify-auth', code: token},"https://northernskyuk.github.io");			
-			console.log(token);
-			//window.close();
+			//console.log(token);
+			window.close();
 		} else {
 			window.close();
 		}
