@@ -90,7 +90,7 @@ const fetchPlayQueue = async () => {
     window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
             name: 'Jubeat Jukebox',
-            getOAuthToken: cb => { cb(token); },
+            getOAuthToken: cb => { cb(retrieveAccessToken()); },
             volume: 0.5
         });
 
