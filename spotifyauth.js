@@ -41,6 +41,8 @@ const redirectToSpotifyAuthorize = async () => {
         code_challenge: codeChallenge,
         scope: scopes
     });
+	
+	  window.open(authUrl).focus();
 };
 
 const getCodeToken = async () => {
