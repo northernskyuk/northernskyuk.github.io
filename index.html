@@ -19,8 +19,8 @@ const scopes = 'streaming user-read-email user-read-private user-read-currently-
   "message",
   (event) => {
   if (event.origin !== "https://northernskyuk.github.io") return;
-      console.log(event);
-	  localStorage.setItem('spotify_access_code', event.data);
+  console.log(event);
+      localStorage.setItem('spotify_access_code', event.data);
 	 getCodeToken();	  
   }
   false,
