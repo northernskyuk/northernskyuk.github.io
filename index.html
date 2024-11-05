@@ -83,19 +83,10 @@ const fetchPlayQueue = async () => {
     }
 };
 
-
-
-
-
-
-  
-
-
-const token = retrieveAccessToken();
-
-if (!token) {
-    redirectToSpotifyAuthorize();
-} else {
+   if (!retrieveAccessToken()) {
+        redirectToSpotifyAuthorize();
+    }
+ else {
     window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
             name: 'Jubeat Jukebox',
