@@ -19,6 +19,7 @@ const scopes = 'streaming user-read-email user-read-private user-read-currently-
   "message",
   (event) => {
   if (event.origin !== "https://northernskyuk.github.io") return;
+   if (!event.data || event.data.type !== 'spotify-auth') return;
   console.log(event);
       localStorage.setItem('spotify_access_code', event.data);
 	 getCodeToken();	  

@@ -9,7 +9,7 @@
 		if(window.opener) {
     const hash = window.location.href;
 		const token = hash.substring(54);
-			window.opener.postMessage(token,"https://northernskyuk.github.io");			
+			window.opener.postMessage({type: 'spotify-auth', code: token},"https://northernskyuk.github.io");			
 			console.log(token);
 			//window.close();
 		} else {
