@@ -7,8 +7,6 @@
 	<p>Please wait while we authenticate Spotify...</p>
 	<script type="text/javascript">
 		if(window.opener) {
-		console.log(window.opener);
-
     const hash = window.location.href;
 		const token = hash.substring(54);
 			window.opener.postMessage(token,"https://northernskyuk.github.io");			
