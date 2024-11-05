@@ -190,13 +190,13 @@ text-align: center;
 <script aynsc src="https://sdk.scdn.co/spotify-player.js"></script>
 <script>
 const clientId = 'b8aa6c40699b4bfa9ea2436a2dd92657';
-const redirectUri = 'http://localhost:8081/spotifytest.html';
+const redirectUri = 'https://northernskyuk.github.io/spotifytest.html';
 const scopes = 'streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state app-remote-control';
 
 	window.addEventListener(
   "message",
   (event) => {
-  if (event.origin !== "http://localhost:8081") return;
+  if (event.origin !== "https://northernskyuk.github.io") return;
       localStorage.setItem('spotify_access_code', event.data);
 	 getCodeToken();	  
   },
