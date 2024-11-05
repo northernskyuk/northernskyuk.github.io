@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jubeat Cabinet Simulator</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+      /* Base styling */
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #111; /* Dark background */
+    color: #f0f0f0; /* Light text color for readability */
+    font-family: Arial, sans-serif;
+}
+
+#textInputDisplay {
+            display: none; /* Initially hidden */
+            width: 100%;
+            font-size: 24px;
+            padding: 10px;
+            border: none;
+            background-color: #333;
+            color: #f0f0f0;
+        }
+
+/* Jubeat cabinet styling */
+.jubeat-cabinet {
+    width: 768px;
+    height: 1360px;
+    background-color: #1a1a1a; /* Darker panel for cabinet */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 4px solid #222; /* Border for a polished look */
+    position: relative;
+    box-shadow: 0px 0px 20px rgba(0, 255, 255, 0.5); /* Neon glow effect */
+}
+
+/* Info display section */
+.infodisplay {
+    width: 768px;
+    height: 464px;
+    background-color: #1e1e2e; /* Dark, blue-toned panel */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: #f0f0f0;
+    border-bottom: 4px solid #333;
+    text-shadow: 0px 0px 5px rgba(0, 255, 255, 0.5); /* Slight glow */
+}
+
+.track-image {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    background-color: #333;
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+	
+}
+
+.track-details {
+    margin-left: 10px;
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.gap {
+height: 168px;
+}
+
+.track-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #00e5ff; /* Vibrant aqua color */
+}
+
+.artist-name, .album-name, .track-time {
+    font-size: 18px;
+    margin: 5px 0;
+    color: #d0d0d0;
+}
+
+.track-time {
+    font-size: 16px;
+    color: #aaa;
+}
+
+/* Button section layout */
+.button-section, .search-button-section, .result-button-section{
+    display: grid;
+    grid-template-columns: repeat(4, 160px);
+    grid-template-rows: repeat(4, 160px);
+    gap: 37px;
+    margin: 0 8px 6px 8px;
+    width: 752px;
+}
+
+/* Button styling */
+.button {
+    width: 160px;
+    height: 160px;
+    background-color: #222; /* Dark base color for buttons */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 24px;
+    color: #f0f0f0; /* Light text color */
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s, transform 0.1s;
+    text-align: center;
+    box-shadow: inset 0px 0px 10px rgba(0, 255, 255, 0.2);
+}
+
+.button:hover {
+    background-color: #333;
+    transform: scale(1.05); /* Slight scaling on hover */
+}
+
+.button.active {
+    background-color: #00e5ff; /* Aqua color on active */
+    box-shadow: 0px 0px 15px rgba(0, 229, 255, 0.8); /* Glow effect */
+}
+
+.button-artwork {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0px 0px 5px rgba(255, 255, 255, 0.2);
+	visibility: hidden;
+}
+
+#category {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    color: #00e5ff; /* Aqua color for track details */
+}
+
+.button-track-name,
+.button-artist-name {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+    color: #00e5ff; /* Aqua color for track details */
+}
+
+.button i {
+    font-size: 36px; 
+    color: #00e5ff;
+}
+
+.trackDetails {
+width:100%;
+}
+
+.connectMessage {
+width: 100%;
+text-align: center;
+ color: #00e5ff;
+ font-size: 28px;
+}
+    </style>
+</head>
+<body>
+<script aynsc src="https://sdk.scdn.co/spotify-player.js"></script>
+<script>
+const clientId = 'b8aa6c40699b4bfa9ea2436a2dd92657';
+const redirectUri = 'http://localhost:8081/spotifytest.html';
+const scopes = 'streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state app-remote-control';
+
+	window.addEventListener(
+  "message",
+  (event) => {
+  if (event.origin !== "http://localhost:8081") return;
+      localStorage.setItem('spotify_access_code', event.data);
+	 getCodeToken();	  
+  },
+  false,
+);
+
+// PKCE: Generate Code Verifier and Challenge
+const generateRandomString = (length) => {
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const values = crypto.getRandomValues(new Uint8Array(length));
+    return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+};
+
+const generateCodeVerifier = () => generateRandomString(64);
+
+const sha256 = async (plain) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plain);
+    return window.crypto.subtle.digest('SHA-256', data);
+};
+
+const base64encode = (input) => {
+    return btoa(String.fromCharCode(...new Uint8Array(input)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+const generateCodeChallenge = async (codeVerifier) => {
+    const hashed = await sha256(codeVerifier);
+    return base64encode(hashed);
+};
+
+const fetchWithRefresh = async (url, options = {}) => {
+    options.headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
+    };
+
+    let response = await fetch(url, options);
+
+    if (response.status === 401) {
+        await refreshAccessToken();
+        options.headers['Authorization'] = `Bearer ${localStorage.getItem('spotify_access_token')}`;
+        response = await fetch(url, options);
+    }
+
+    return response;
+};
+
+const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('spotify_refresh_token');
+    if (!refreshToken) return;
+
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            client_id: clientId,
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+        })
+    });
+
+    const data = await response.json();
+    if (data.access_token) {
+        localStorage.setItem('spotify_access_token', data.access_token);
+        if (data.refresh_token) {
+            localStorage.setItem('spotify_refresh_token', data.refresh_token);
+        }
+    } else {
+        console.error('Failed to refresh token:', data);
+    }
+};
+
+const fetchPlayQueue = async () => {
+    const url = 'https://api.spotify.com/v1/me/player/queue';
+    try {
+        const response = await fetchWithRefresh(url);
+        if (response.ok) {
+            const queueData = await response.json();
+            populateButtons(queueData.queue.slice(0, 12));
+        } else {
+            console.error('Failed to fetch play queue:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error fetching play queue:', error);
+    }
+};
+
+const getCodeToken = async () => {
+    try {
+        const response = await fetch('https://accounts.spotify.com/api/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                code: getAccessCode(),
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code',
+                code_verifier: localStorage.getItem('code_verifier'),
+                client_id: clientId
+            }).toString()
+        });
+
+        const data = await response.json();
+        localStorage.setItem('spotify_access_token', data.access_token);
+        localStorage.setItem('spotify_refresh_token', data.refresh_token);
+        window.location.reload();
+    } catch (error) {
+        console.error('Error fetching access token:', error);
+    }
+};
+
+const retrieveAccessToken = () => localStorage.getItem('spotify_access_token');
+const getAccessCode = () => localStorage.getItem('spotify_access_code');
+
+const redirectToSpotifyAuthorize = async () => {
+    const codeVerifier = generateCodeVerifier();
+    localStorage.setItem('code_verifier', codeVerifier);
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+    const authUrl = `https://accounts.spotify.com/authorize?` + new URLSearchParams({
+        client_id: clientId,
+        response_type: 'code',
+        redirect_uri: redirectUri,
+        code_challenge_method: 'S256',
+        code_challenge: codeChallenge,
+        scope: scopes
+    });
+
+    window.open(authUrl).focus();
+};
+
+const token = retrieveAccessToken();
+
+if (!token) {
+    redirectToSpotifyAuthorize();
+} else {
+    window.onSpotifyWebPlaybackSDKReady = () => {
+        const player = new Spotify.Player({
+            name: 'Jubeat Jukebox',
+            getOAuthToken: cb => { cb(token); },
+            volume: 0.5
+        });
+
+        let fetchPlayQueueTimeout;
+        const debouncedFetchPlayQueue = () => {
+            if (fetchPlayQueueTimeout) {
+                clearTimeout(fetchPlayQueueTimeout);
+            }
+            fetchPlayQueueTimeout = setTimeout(fetchPlayQueue, 1000);
+        };
+
+        player.addListener('player_state_changed', ({ position, duration, track_window: { current_track } }) => {
+            updateState();
+            debouncedFetchPlayQueue();
+            player.getCurrentState().then(state => {
+                if (state) {
+                    updatePlayPauseIcon(!state.paused);
+                }
+            });
+
+            document.getElementById('connectMessage').style.display = 'none';
+            document.getElementById('trackDetails').style.display = 'flex';
+        });
+
+        player.addListener('ready', ({ device_id }) => {
+            console.log('Ready with Device ID', device_id);
+			localStorage.setItem('device_id',device_id);
+        });
+
+        player.addListener('not_ready', ({ device_id }) => {
+            console.log('Device ID has gone offline', device_id);
+        });
+
+        player.addListener('initialization_error', ({ message }) => {
+            console.error(message);
+        });
+
+        player.addListener('authentication_error', ({ message }) => {
+            console.error(message);
+            localStorage.removeItem('spotify_access_token');
+            redirectToSpotifyAuthorize();
+        });
+
+        player.addListener('account_error', ({ message }) => {
+            console.error(message);
+        });
+
+        player.connect();
+
+        const updatePlayPauseIcon = (isPlaying) => {
+            const playButtonIcon = document.getElementById('togglePlay').querySelector('i');
+            playButtonIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+        };
+
+        const formatTime = (seconds) => {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        };
+
+        const updateState = () => {
+            player.getCurrentState().then(state => {
+                if (!state) {
+                    console.error('User is not playing music through the Web Playback SDK');
+                    return;
+                }
+
+                const current_track = state.track_window.current_track;
+                document.getElementById('track-name').innerHTML = current_track.name;
+                document.getElementById('artist-name').innerHTML = current_track.artists[0].name;
+                document.getElementById('album-name').innerHTML = current_track.album.name;
+                document.getElementById('current-position').innerHTML = formatTime(state.position / 1000);
+                document.getElementById('duration').innerHTML = formatTime(current_track.duration_ms / 1000);
+                document.getElementById('track-image').src = current_track.album.images[0].url;
+            });
+        };
+		
+
+        const playTrack = async (trackUri) => {
+		console.log(trackUri);
+		const device_id = localStorage.getItem('device_id');
+            const url = 'https://api.spotify.com/v1/me/player/play?device_id='+device_id;
+             const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
+    };
+
+    // Determine how to set the URI based on its type
+    if (trackUri.startsWith("spotify:track")) {
+        options.body = JSON.stringify({ uris: [trackUri] }); // Play specific track
+    } else if (trackUri.startsWith("spotify:album") || trackUri.startsWith("spotify:artist") || trackUri.startsWith("spotify:playlist")) {
+        options.body = JSON.stringify({ context_uri: trackUri }); // Play album, artist, or playlist
+    } else {
+        console.error("Unsupported URI type:", trackUri);
+        return;
+    }
+
+            try {
+                const response = await fetchWithRefresh(url, options);
+                if (response.ok) {
+                    console.log(`Playing track: ${trackUri}`);
+                } else {
+                    console.error('Failed to play track:', response.status);
+                }
+            } catch (error) {
+                console.error('Error starting playback:', error);
+            }
+        };
+
+        document.querySelectorAll('.button').forEach((button, index) => {
+            if (index < 12) {
+                button.addEventListener('click', () => {
+                    const trackUri = button.dataset.trackUri;
+                    if (trackUri) {
+                        playTrack(trackUri);
+                    } else {
+                        console.error('No track URI found for this button');
+                    }
+                });
+            }
+        });
+
+        document.getElementById('togglePlay').onclick = () => {
+            player.togglePlay().then(() => {
+                player.getCurrentState().then(state => {
+                    if (state) {
+                        updatePlayPauseIcon(!state.paused);
+                    }
+                });
+            });
+        };
+
+        document.getElementById('previousTrack').onclick = () => player.previousTrack();
+        document.getElementById('nextTrack').onclick = () => player.nextTrack();
+	
+	
+
+//   
+	  const keyToButtonIndex = {
+  '1': 0, '2': 1, '3': 2, '4': 3,
+  'q': 4, 'w': 5, 'e': 6, 'r': 7,
+  'a': 8, 's': 9, 'd': 10, 'f': 11,
+  'z': 12, 'x': 13, 'c': 14, 'v': 15
+};
+
+function toggleSearchMode() {
+    const mainButtonSection = document.getElementById('mainButtonSection');
+    const searchButtonSection = document.getElementById('searchButtonSection');
+	   const defaultDisplay = document.getElementById('defaultDisplay');
+    const textInputDisplay = document.getElementById('textInputDisplay');
+	
+    const resultsButtonSection = document.getElementById('resultsButtonSection');	
+    // Determine which button set is visible
+    const isMainVisible = mainButtonSection.style.display === 'grid' || mainButtonSection.style.display === '';
+	const isResultVisible = resultsButtonSection.style.display === 'grid';
+	
+	
+	if (isResultVisible) {
+	
+mainButtonSection.style.display = 'grid';
+resultsButtonSection.style.display = 'none';	}
+	else {
+    mainButtonSection.style.display = mainButtonSection.style.display === 'none' ? 'grid' : 'none';
+    searchButtonSection.style.display = searchButtonSection.style.display === 'none' ? 'grid' : 'none';
+   } 	
+	
+	 if (searchButtonSection.style.display === 'grid') {
+        defaultDisplay.style.display = 'none';
+        textInputDisplay.style.display = 'block';
+        textInputDisplay.focus(); // Focus the input field for typing
+    } else {
+        defaultDisplay.style.display = 'block';
+        textInputDisplay.style.display = 'none';
+        textInputDisplay.value = ''; // Clear input on exit
+    }
+};
+
+
+// Add event listener to the search button in the main button section
+document.getElementById('search').addEventListener('click', toggleSearchMode);
+
+document.getElementById('search2').addEventListener('click', toggleSearchMode);
+
+document.getElementById('search3').addEventListener('click', toggleSearchMode);
+
+
+			
+
+
+document.getElementById('textInputDisplay').addEventListener('keydown', (event) => {
+
+    // Prevent default only if search mode is active
+   
+        event.preventDefault(); // Prevent direct input from typing
+    
+});
+
+
+// T9 input functionality
+let textInput = ""; // Holds the entered text
+let currentButton = null; // Last button pressed
+let currentChar = ""; // Current character in the cycle
+let cycleTimeout = null; // Timeout for T9 cycling
+
+const displayElement = document.getElementById("textInputDisplay");
+
+// Finalize the character on timeout or new button press
+function finalizeCharacter() {
+    if (currentButton) {
+        textInput += currentChar; // Append the finalized character to textInput
+        displayElement.value = textInput; // Display the updated text
+        currentButton.index = 0; // Reset the character cycle index for this button
+        currentButton = null; // Clear the current button reference
+    }
+}
+
+
+//Listener to play search result 
+        document.querySelectorAll('#resultsButtonSection .button').forEach((button, index) => {
+            if (index < 12) {
+                button.addEventListener('click', () => {
+                    const trackUri = button.dataset.trackUri;
+                    if (trackUri) {
+                        playTrack(trackUri);
+						toggleSearchMode();
+                    } else {
+                        console.error('No track URI found for this button');
+                    }
+                });
+            }
+			
+			
+        });
+		
+
+// Add event listeners to T9 buttons
+document.querySelectorAll('#searchButtonSection .button').forEach(button => {
+    const letters = button.dataset.letters;
+
+    if (letters) {
+        button.index = 0; // Initialize the cycle index for each button
+
+        button.addEventListener('click', () => {
+            // If a different button is pressed, finalize the previous character
+            if (currentButton && currentButton !== button) {
+                finalizeCharacter();
+            }
+
+            currentButton = button; // Set the current button
+
+            // Determine the character based on the current index
+            currentChar = letters[button.index];
+            displayElement.value = textInput + currentChar; // Show the current character with partial text
+
+            // Clear the previous timeout and set a new one to finalize after 300ms
+            clearTimeout(cycleTimeout);
+            cycleTimeout = setTimeout(() => finalizeCharacter(), 300);
+
+            // Advance the character cycle index for the next press within 300ms
+            button.index = (button.index + 1) % letters.length;
+        });
+    }  else {
+        // Special buttons (BACK, ENTER, CLEAR, SPACE)
+        if (button.id === "back") {
+            button.addEventListener('click', () => {
+                finalizeCharacter();
+                textInput = textInput.slice(0, -1);
+                displayElement.value = textInput;
+            });
+        } else if (button.id === "enter") {
+           button.addEventListener('click', () => {
+                finalizeCharacter(); // Finalize any ongoing T9 character
+                const query = textInput.trim(); // Get the current text input
+                if (query) {
+                    searchSpotify(query); // Perform the search
+                            }
+                textInput = ""; // Clear the input after search
+                displayElement.value = ""; // Clear the text display
+                //toggleSearchMode(); // Exit search mode
+            });
+        } else if (button.textContent === "SPACE") {
+            button.addEventListener('click', () => {
+                finalizeCharacter();
+                textInput += " ";
+                displayElement.value = textInput;
+            });
+        }
+		else if (button.id === "category") {
+            button.addEventListener('click', () => {
+               cycleFilter();
+            });
+        }
+    }
+});
+
+// Spotify Search Function
+async function searchSpotify(query) {
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${selectedFilter.toLowerCase()}&limit=12`;
+    const options = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    try {
+        const response = await fetchWithRefresh(url, options);
+        if (response.ok) {
+            const data = await response.json();
+			populateSearchButtons(data);
+            console.log('Search results:', data);
+		// Log results for now
+            // TODO: Display search results on the UI
+        } else {
+            console.error('Search failed:', response.status, await response.text());
+        }
+    } catch (error) {
+        console.error('Error searching Spotify:', error);
+    }
+}
+	
+
+// Add the event listener for keydown
+document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+    const mainButtonSection = document.getElementById('mainButtonSection');
+	console.log('main buttons: ' + mainButtonSection.style.display);
+    const searchButtonSection = document.getElementById('searchButtonSection');	
+    const resultsButtonSection = document.getElementById('resultsButtonSection');	
+	console.log('search buttons: ' + resultsButtonSection.style.display);
+
+ if (event.key.toLowerCase() === 'z') {
+        event.preventDefault(); // Prevent the toggle key from being inputted
+       // Exit the function to avoid further handling of this key
+    }
+
+    // Determine which button set is visible
+    const isMainVisible = mainButtonSection.style.display === 'grid' || mainButtonSection.style.display === '';
+	const isResultVisible = resultsButtonSection.style.display === 'grid';
+	
+	console.log(isResultVisible);
+    const buttons = isMainVisible
+        ? document.querySelectorAll('#mainButtonSection .button')
+        : (isResultVisible ? document.querySelectorAll('#resultsButtonSection .button'): document.querySelectorAll('#searchButtonSection .button'));
+
+    // Get button index from the shared key-to-button mapping
+    const buttonIndex = keyToButtonIndex[key];
+    if (buttonIndex !== undefined && buttons[buttonIndex]) {
+        buttons[buttonIndex].click(); // Simulate button click
+        buttons[buttonIndex].classList.add('active'); // Add visual feedback
+        setTimeout(() => buttons[buttonIndex].classList.remove('active'), 100); // Remove feedback
+    }
+});
+    };
+	}
+	
+	function populateButtons(tracks) {
+    const buttons = document.querySelectorAll('#mainButtonSection .button');
+
+    // Loop through each button, up to the maximum number of buttons
+    buttons.forEach((button, index) => {
+        const track = tracks[index];
+
+        if (track) {
+            // Populate button with track data if track exists
+            const artworkElement = button.querySelector('.button-artwork');
+            artworkElement.src = track.album.images[0].url;
+            artworkElement.alt = `${track.album.name} Artwork`;
+			artworkElement.style.visibility = 'visible';
+
+            button.querySelector('.button-track-name').textContent = track.name;
+            button.querySelector('.button-artist-name').textContent = track.artists[0].name;
+
+            // Store the track URI as a data attribute on the button
+            button.dataset.trackUri = track.uri;
+            button.style.display = 'flex'; // Make sure button is visible
+        } else {
+            // Clear button content if there is no track for this index
+			//button.querySelector('.button-artwork').alt = 'No Artwork';
+            button.querySelector('.button-track-name').textContent = null;
+            button.querySelector('.button-artist-name').textContent = null;
+
+            delete button.dataset.trackUri;
+            button.querySelector('.button-artwork').style.visibility = 'hidden'; // Optionally hide the button
+        }
+    });
+}
+
+
+function showResults() {
+    const mainButtonSection = document.getElementById('mainButtonSection');
+    const searchButtonSection = document.getElementById('searchButtonSection');
+	const resultsButtonSection = document.getElementById('resultsButtonSection');
+	   const defaultDisplay = document.getElementById('defaultDisplay');
+    const textInputDisplay = document.getElementById('textInputDisplay');
+	
+    resultsButtonSection.style.display = 'grid';
+    searchButtonSection.style.display = 'none';	
+  mainButtonSection.style.display = 'none';	 	
+        defaultDisplay.style.display = 'block';
+        textInputDisplay.style.display = 'none';
+        textInputDisplay.value = ''; // Clear input on exit
+};
+
+function populateSearchButtons(results) {
+    const buttons = document.querySelectorAll('#resultsButtonSection .button');
+    showResults(); // Toggle the visibility of results section
+
+    buttons.forEach((button, index) => {
+        let item, artworkUrl, name, secondaryInfo, uri;
+
+        // Determine the structure based on the selected filter
+        switch (selectedFilter.toLowerCase()) {
+            case 'track':
+                item = results.tracks.items[index];
+                if (item) {
+                    artworkUrl = item.album.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
+                    uri = item.uri;
+                }
+                break;
+            case 'album':
+                item = results.albums.items[index];
+                if (item) {
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
+                    uri = item.uri;
+                }
+                break;
+            case 'artist':
+                item = results.artists.items[index];
+                if (item) {
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = "Artist"; // Optional secondary info for artists
+                    uri = item.uri;
+                }
+                break;
+            case 'playlist':
+                item = results.playlists.items[index];
+                if (item) {
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = `by ${item.owner.display_name}`; // Playlist owner
+                    uri = item.uri;
+                }
+                break;
+            default:
+                console.error("Unknown search type");
+                return;
+        }
+
+        // Populate or clear button based on whether item exists
+        if (item) {
+            const artworkElement = button.querySelector('.button-artwork');
+            artworkElement.src = artworkUrl || '';
+            artworkElement.alt = `${name} Artwork`;
+            artworkElement.style.visibility = artworkUrl ? 'visible' : 'hidden';
+
+            button.querySelector('.button-track-name').textContent = name;
+            button.querySelector('.button-artist-name').textContent = secondaryInfo;
+
+            // Store URI as data attribute
+            button.dataset.trackUri = uri;
+            button.style.display = 'flex'; // Ensure button is visible
+        } else {
+            // Clear button content if no item
+            button.querySelector('.button-track-name').textContent = '';
+            button.querySelector('.button-artist-name').textContent = '';
+            const artworkElement = button.querySelector('.button-artwork');
+            artworkElement.src = '';
+            artworkElement.alt = 'No Artwork';
+            artworkElement.style.visibility = 'hidden';
+            delete button.dataset.trackUri;
+            button.style.display = 'none'; // Optionally hide the button
+        }
+    });
+}
+
+    // Filter types array and initial index
+    const filterTypes = ['ARTIST', 'ALBUM', 'TRACK', 'PLAYLIST'];
+    let currentFilterIndex = 2; // Starting with 'Track'
+    let selectedFilter = filterTypes[currentFilterIndex]; // Current selected filter
+
+    // Function to cycle through filters
+    function cycleFilter() {
+        // Update the filter index
+        currentFilterIndex = (currentFilterIndex + 1) % filterTypes.length;
+        
+        // Set the selected filter based on the new index
+        selectedFilter = filterTypes[currentFilterIndex];
+
+        // Update the button text to show the current filter
+        document.getElementById('category').textContent = `${selectedFilter}`;
+        console.log(`Current filter set to: ${selectedFilter}`);
+    }
+
+
+
+
+  </script>
+    <div class="jubeat-cabinet">
+        <!-- Info Display Section -->
+        <div id="infodisplay" class="infodisplay">
+   	<input type="text" id="textInputDisplay" placeholder="What are you looking for...?" />
+    <div id="defaultDisplay">
+	
+	 <p id="connectMessage" class="connectMessage" style="display: block;">Search or connect from another device to start playback!</p>
+	<div id="trackDetails" class="trackDetails" style="display: none;">
+        <img class="track-image" id="track-image" src="" alt="Track Image">
+        <div class="track-details">
+            <p class="track-name" id="track-name"></p>
+            <p class="artist-name" id="artist-name">Artist Name</p>
+            <p class="album-name" id="album-name">Album Name</p>
+            <p class="track-time">
+                <span class="current-position" id="current-position">Current Position s</span> /
+                <span class="duration" id="duration">Duration s</span>
+            </p>
+        </div>
+    </div>
+	</div>
+</div>
+			
+
+        <!-- Gap Section -->
+        <div class="gap"></div>
+
+        <!-- Button Section (4x4 Grid) -->
+        <div class="button-section" id="mainButtonSection">
+            <!-- 16 Button Containers -->
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+               <div class="button" id="search">
+        <i class="fas fa-search"></i> <!-- Search icon for SEARCH -->
+    </div>
+
+    <!-- Button 14: BACK icon -->
+    <div class="button" id="previousTrack">
+        <i class="fas fa-step-backward"></i> <!-- Step backward icon for BACK -->
+    </div>
+
+    <!-- Button 15: PLAY icon -->
+    <div class="button" id="togglePlay">
+        <i class="fas fa-play"></i> <!-- Play icon for PLAY -->
+    </div>
+
+    <!-- Button 16: NEXT icon -->
+    <div class="button" id="nextTrack">
+        <i class="fas fa-step-forward"></i> <!-- Step forward icon for NEXT -->
+    </div>
+        </div>
+		
+		<div class="search-button-section" id="searchButtonSection" style="display: none;">
+        <div class="button" id ="category">TRACK</div>
+        <div class="button" data-letters="ABC">ABC</div>
+        <div class="button" data-letters="DEF">DEF</div>
+        <div class="button"></div>
+        <div class="button" data-letters="GHI">GHI</div>
+        <div class="button" data-letters="JKL">JKL</div>
+        <div class="button" data-letters="MNO">MNO</div>
+        <div class="button"></div>
+        <div class="button" data-letters="PQRS">PQRS</div>
+        <div class="button" data-letters="TUV">TUV</div>
+        <div class="button" data-letters="WXYZ">WXYZ</div>		
+        <div class="button"></div>
+		<div class="button" id="search2">
+        <i class="fas fa-backward"></i> <!-- Search icon for SEARCH -->
+    </div>
+        <div class="button">SPACE</div>
+        <div class="button" id="back"><i class="fas fa-chevron-left"></i></div>
+        <div class="button" id="enter"><i class="fas fa-check-square"></i></div>
+    </div>
+	
+	  <div class="result-button-section" id="resultsButtonSection" style="display: none;">
+            <!-- 16 Button Containers -->
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+            <div class="button">  <img class="button-artwork" src="" alt="Album Artwork">
+        <p class="button-track-name"></p>
+        <p class="button-artist-name"></p></div>
+               <div class="button" id="search3">
+        <i class="fas fa-backward"></i> <!-- Search icon for SEARCH -->
+    </div>
+
+    <!-- Button 14: BACK icon -->
+    <div class="button" id="previousTrack2">
+       <!-- <i class="fas fa-step-backward"></i> <!-- Step backward icon for BACK -->
+    </div>
+
+    <!-- Button 15: PLAY icon -->
+    <div class="button" id="togglePlay">
+       <!-- <i class="fas fa-play"></i> <!-- Play icon for PLAY -->
+    </div>
+
+    <!-- Button 16: NEXT icon -->
+    <div class="button" id="nextTrack2">
+        <!-- <i class="fas fa-step-forward"></i> <!-- Step forward icon for NEXT -->
+    </div>
+        </div>
+	
+    </div>
+	<script>
+// Toggle visibility between main button section and T9 search button section
+
+
+	</script>
+
+</body>
+</html>
