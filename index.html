@@ -204,20 +204,10 @@ resultsButtonSection.style.display = 'none';	}
 
 // Add event listener to the search button in the main button section
 document.getElementById('search').addEventListener('click', toggleSearchMode);
-
 document.getElementById('search2').addEventListener('click', toggleSearchMode);
-
 document.getElementById('search3').addEventListener('click', toggleSearchMode);
-
-
-			
-
-
 document.getElementById('textInputDisplay').addEventListener('keydown', (event) => {
-    // Prevent default only if search mode is active
-   
-        event.preventDefault(); 
-    
+       event.preventDefault(); 
 });
 
 
@@ -238,23 +228,6 @@ function finalizeCharacter() {
         currentButton = null; // Clear the current button reference
     }
 }
-
-
-//Listener to play search result 
-        document.querySelectorAll('#resultsButtonSection .button').forEach((button, index) => {
-            if (index < 12) {
-                button.addEventListener('click', () => {
-                    const trackUri = button.dataset.trackUri;
-                    if (trackUri) {
-                        playTrack(trackUri);
-						toggleSearchMode();
-                    } else {
-                        console.error('No track URI found for this button');
-                    }
-                });
-            }			
-        });
-		
 
 // Add event listeners to T9 buttons
 document.querySelectorAll('#searchButtonSection .button').forEach(button => {
@@ -316,45 +289,30 @@ document.querySelectorAll('#searchButtonSection .button').forEach(button => {
     }
 });
 
-// Spotify Search Function
-async function searchSpotify(query) {
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${selectedFilter.toLowerCase()}&limit=12`;
-    const options = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    };
-
-    try {
-        const response = await fetchWithRefresh(url, options);
-        if (response.ok) {
-            const data = await response.json();
-			populateSearchButtons(data);
-            console.log('Search results:', data);
-		// Log results for now
-            // TODO: Display search results on the UI
-        } else {
-            console.error('Search failed:', response.status, await response.text());
-        }
-    } catch (error) {
-        console.error('Error searching Spotify:', error);
-    }
-}
-	
+//Listener to play search result 
+        document.querySelectorAll('#resultsButtonSection .button').forEach((button, index) => {
+            if (index < 12) {
+                button.addEventListener('click', () => {
+                    const trackUri = button.dataset.trackUri;
+                    if (trackUri) {
+                        playTrack(trackUri);
+						toggleSearchMode();
+                    } else {
+                        console.error('No track URI found for this button');
+                    }
+                });
+            }			
+        });
 
 // Add the event listener for keydown
 document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
     const mainButtonSection = document.getElementById('mainButtonSection');
-	console.log('main buttons: ' + mainButtonSection.style.display);
     const searchButtonSection = document.getElementById('searchButtonSection');	
-    const resultsButtonSection = document.getElementById('resultsButtonSection');	
-	console.log('search buttons: ' + resultsButtonSection.style.display);
-
+    const resultsButtonSection = document.getElementById('resultsButtonSection');
+	
  if (event.key.toLowerCase() === 'z') {
-        event.preventDefault(); // Prevent the toggle key from being inputted
-       // Exit the function to avoid further handling of this key
+        event.preventDefault(); // Prevent the toggle key from being input into search box
     }
 
     // Determine which button set is visible
