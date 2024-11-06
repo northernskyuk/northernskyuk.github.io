@@ -1,3 +1,36 @@
+ function toggleSearchMode() {
+    const mainButtonSection = document.getElementById('mainButtonSection');
+    const searchButtonSection = document.getElementById('searchButtonSection');
+	   const defaultDisplay = document.getElementById('defaultDisplay');
+    const textInputDisplay = document.getElementById('textInputDisplay');
+	
+    const resultsButtonSection = document.getElementById('resultsButtonSection');	
+    // Determine which button set is visible
+    const isMainVisible = mainButtonSection.style.display === 'grid' || mainButtonSection.style.display === '';
+	const isResultVisible = resultsButtonSection.style.display === 'grid';
+	
+	
+	if (isResultVisible) {
+	
+mainButtonSection.style.display = 'grid';
+resultsButtonSection.style.display = 'none';	}
+	else {
+    mainButtonSection.style.display = mainButtonSection.style.display === 'none' ? 'grid' : 'none';
+    searchButtonSection.style.display = searchButtonSection.style.display === 'none' ? 'grid' : 'none';
+   } 	
+	
+	 if (searchButtonSection.style.display === 'grid') {
+        defaultDisplay.style.display = 'none';
+        textInputDisplay.style.display = 'block';
+        textInputDisplay.focus(); // Focus the input field for typing
+    } else {
+        defaultDisplay.style.display = 'block';
+        textInputDisplay.style.display = 'none';
+        textInputDisplay.value = ''; // Clear input on exit
+    }
+};
+ 
+ 
  const filterTypes = ['ARTIST', 'ALBUM', 'TRACK', 'PLAYLIST'];
     let currentFilterIndex = 2; // Starting with 'Track'
     let selectedFilter = filterTypes[currentFilterIndex]; // Current selected filter
