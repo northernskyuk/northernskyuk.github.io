@@ -2,7 +2,9 @@ Prototype Spotify Client for Jubeat controllers/cabs
 
 Initial version has a fair bit of jank to be fixed:
 
-* Track position is fairly static. Will fix that and maaaaybe add a jubeat-style progress bar. 
+* Track position is fairly static. Will fix that and maaaaybe add a jubeat-style progress bar.
+
+* If you are playing from a queue the next tracks will show on the buttons. If you select a button it will play that track but replaces the queue and sometimes shows the same track 10 times. I think this is a spotify issue but will look at workarounds as it's annoying.
 
 * Authorization currently auto-opens in a new window, triggering popup blockers. Will move this to be triggered by one of the buttons if no token is present. 
 
