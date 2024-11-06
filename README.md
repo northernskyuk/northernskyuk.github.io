@@ -2,6 +2,8 @@ Prototype Spotify Client for Jubeat controllers/cabs
 
 Initial version has a fair bit of jank to be fixed:
 
+* Track position is fairly static. Will fix that and maaaaybe add a jubeat-style progress bar. 
+
 * Authorization currently auto-opens in a new window, triggering popup blockers. Will move this to be triggered by one of the buttons if no token is present. 
 
 * The Player doesn't handle token expiry very well but it sorts itself out once an API call is made.
