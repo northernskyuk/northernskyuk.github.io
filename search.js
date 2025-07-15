@@ -96,7 +96,7 @@ function populateSearchButtons(results) {
                 if (item) {
                     artworkUrl = item.images[0]?.url;
                     name = item.name;
-                    secondaryInfo = "Artist"; // Optional secondary info for artists
+                    secondaryInfo = "Artist";
                     uri = item.uri;
                 }
                 break;
@@ -105,7 +105,7 @@ function populateSearchButtons(results) {
                 if (item) {
                     artworkUrl = item.images[0]?.url;
                     name = item.name;
-                    secondaryInfo = `by ${item.owner.display_name}`; // Playlist owner
+                    secondaryInfo = `by ${item.owner.display_name}`;
                     uri = item.uri;
                 }
                 break;
@@ -115,28 +115,31 @@ function populateSearchButtons(results) {
         }
 
         // Populate or clear button based on whether item exists
+        const artworkElement = button.querySelector('.button-artwork');
+        const trackNameElement = button.querySelector('.button-track-name');
+        const artistNameElement = button.querySelector('.button-artist-name');
+
         if (item) {
-            const artworkElement = button.querySelector('.button-artwork');
-            artworkElement.src = artworkUrl || '';
-            artworkElement.alt = `${name} Artwork`;
-            artworkElement.style.visibility = artworkUrl ? 'visible' : 'hidden';
+            if (artworkElement) {
+                artworkElement.src = artworkUrl || '';
+                artworkElement.alt = `${name} Artwork`;
+                artworkElement.style.visibility = artworkUrl ? 'visible' : 'hidden';
+            }
+            if (trackNameElement) trackNameElement.textContent = name;
+            if (artistNameElement) artistNameElement.textContent = secondaryInfo;
 
-            button.querySelector('.button-track-name').textContent = name;
-            button.querySelector('.button-artist-name').textContent = secondaryInfo;
-
-            // Store URI as data attribute
             button.dataset.trackUri = uri;
-            button.style.display = 'flex'; // Ensure button is visible
+            button.style.display = 'flex';
         } else {
-            // Clear button content if no item
-            button.querySelector('.button-track-name').textContent = '';
-            button.querySelector('.button-artist-name').textContent = '';
-            const artworkElement = button.querySelector('.button-artwork');
-            artworkElement.src = '';
-            artworkElement.alt = 'No Artwork';
-            artworkElement.style.visibility = 'hidden';
+            if (trackNameElement) trackNameElement.textContent = '';
+            if (artistNameElement) artistNameElement.textContent = '';
+            if (artworkElement) {
+                artworkElement.src = '';
+                artworkElement.alt = 'No Artwork';
+                artworkElement.style.visibility = 'hidden';
+            }
             delete button.dataset.trackUri;
-            button.style.display = 'none'; // Optionally hide the button
+            button.style.display = 'flex'; // Keep button visible but empty
         }
     });
 } 
