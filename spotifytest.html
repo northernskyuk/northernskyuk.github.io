@@ -5,17 +5,11 @@
 	<meta name="google-site-verification" content="P4oMN3AazG4kcbzVdRky8h8P1DJlCcVk_qYCwT6K3YA" />
   </head>
   <body>
-	<p>Thank you for authorising the app!</p>
+	<p>Thank you for authorising the app! Redirecting you to the main page...</p>
 	<script type="text/javascript">
-		if(window.opener) {
-    const hash = window.location.href;
-		const token = hash.substring(54);
-			window.opener.postMessage({type: 'spotify-auth', code: token},"https://northernskyuk.github.io");			
-			//console.log(token);
-			window.close();
-		} else {
-			window.close();
-		}
+	  setTimeout(function() {
+		window.location.replace('index.html');
+	  }, 1000); // 1 second delay for user feedback
 	</script>
   </body>
 </html>
