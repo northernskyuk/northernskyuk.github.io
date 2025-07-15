@@ -331,31 +331,43 @@ document.addEventListener('keydown', (event) => {
     // Loop through each button, up to the maximum number of buttons
     buttons.forEach((button, index) => {
         const track = tracks[index];
+        const artworkElement = button.querySelector('.button-artwork');
+        const trackNameElement = button.querySelector('.button-track-name');
+        const artistNameElement = button.querySelector('.button-artist-name');
 
         if (track) {
             // Populate button with track data if track exists
-            const artworkElement = button.querySelector('.button-artwork');
-            artworkElement.src = track.album.images[0].url;
-            artworkElement.alt = `${track.album.name} Artwork`;
-			artworkElement.style.visibility = 'visible';
-
-            button.querySelector('.button-track-name').textContent = track.name;
-            button.querySelector('.button-artist-name').textContent = track.artists[0].name;
+            if (artworkElement) {
+                artworkElement.src = track.album.images[0].url;
+                artworkElement.alt = `${track.album.name} Artwork`;
+                artworkElement.style.visibility = 'visible';
+            }
+            if (trackNameElement) trackNameElement.textContent = track.name;
+            if (artistNameElement) artistNameElement.textContent = track.artists[0].name;
 
             // Store the track URI as a data attribute on the button
             button.dataset.trackUri = track.uri;
             button.style.display = 'flex'; // Make sure button is visible
         } else {
             // Clear button content if there is no track for this index
-			//button.querySelector('.button-artwork').alt = 'No Artwork';
-            button.querySelector('.button-track-name').textContent = null;
-            button.querySelector('.button-artist-name').textContent = null;
-
+            if (trackNameElement) trackNameElement.textContent = '';
+            if (artistNameElement) artistNameElement.textContent = '';
+            if (artworkElement) artworkElement.style.visibility = 'hidden';
             delete button.dataset.trackUri;
-            button.querySelector('.button-artwork').style.visibility = 'hidden'; // Optionally hide the button
         }
     });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const connectMessage = document.getElementById('connectMessage');
+    if (typeof retrieveAccessToken === 'function' && retrieveAccessToken()) {
+        connectMessage.textContent = "Search or connect from another device to start playback!";
+        connectMessage.style.display = 'block';
+    } else {
+        connectMessage.textContent = "Press a button to connect to Spotify";
+        connectMessage.style.display = 'block';
+    }
+});
 
   </script>
     <div class="jubeat-cabinet">
