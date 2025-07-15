@@ -40,7 +40,6 @@ const generateCodeChallenge = async (codeVerifier) => {
     return base64encode(hashed);
 };
 
-// get access code
 const redirectToSpotifyAuthorize = async () => {
     const codeVerifier = generateCodeVerifier();
     localStorage.setItem('code_verifier', codeVerifier);
@@ -55,7 +54,6 @@ const redirectToSpotifyAuthorize = async () => {
         scope: scopes
     });
 
-    // Use redirect instead of pop-up
     window.location.href = authUrl;
 };
 
@@ -115,7 +113,10 @@ const retrieveAccessToken = () => localStorage.getItem('spotify_access_token');
 (function handleSpotifyAuthCode() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const accessToken = retrieveAccessToken();
     if (code) {
         getCodeToken(code);
+    } else if (!accessToken) {
+        redirectToSpotifyAuthorize();
     }
 })();
