@@ -83,10 +83,59 @@
             return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
         };
 
+        // --- Real-time progress timer logic ---
+        let progressTimer = null;
+        let currentPosition = 0;
+        let durationMs = 0;
+        let isPlaying = false;
+
+        // --- Global Spotify auth check for all .button elements ---
+        function ensureSpotifyAuth() {
+            if (!retrieveAccessToken()) {
+                redirectToSpotifyAuthorize();
+                return false;
+            }
+            return true;
+        }
+
+        // Attach a global click handler to all .button elements (capture phase)
+        document.querySelectorAll('.button').forEach(button => {
+            button.addEventListener('click', function(event) {
+                if (!ensureSpotifyAuth()) {
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                }
+            }, true); // capture phase
+        });
+        // --- End global Spotify auth check ---
+
+        function startProgressTimer() {
+            if (progressTimer) clearInterval(progressTimer);
+            progressTimer = setInterval(() => {
+                if (isPlaying && currentPosition < durationMs) {
+                    currentPosition += 1000; // increment by 1 second
+                    updateProgressUI(currentPosition, durationMs);
+                }
+            }, 1000);
+        }
+
+        function stopProgressTimer() {
+            if (progressTimer) clearInterval(progressTimer);
+            progressTimer = null;
+        }
+
+        function updateProgressUI(position, duration) {
+            document.getElementById('current-position').innerHTML = formatTime(position / 1000);
+            document.getElementById('duration').innerHTML = formatTime(duration / 1000);
+        }
+
+        // --- End real-time progress timer logic ---
+
         const updateState = () => {
             player.getCurrentState().then(state => {
                 if (!state) {
                     console.error('User is not playing music through the Web Playback SDK');
+                    stopProgressTimer();
                     return;
                 }
 
@@ -94,9 +143,17 @@
                 document.getElementById('track-name').innerHTML = current_track.name;
                 document.getElementById('artist-name').innerHTML = current_track.artists[0].name;
                 document.getElementById('album-name').innerHTML = current_track.album.name;
-                document.getElementById('current-position').innerHTML = formatTime(state.position / 1000);
-                document.getElementById('duration').innerHTML = formatTime(current_track.duration_ms / 1000);
+                currentPosition = state.position;
+                durationMs = current_track.duration_ms;
+                isPlaying = !state.paused;
+                updateProgressUI(currentPosition, durationMs);
                 document.getElementById('track-image').src = current_track.album.images[0].url;
+
+                if (isPlaying) {
+                    startProgressTimer();
+                } else {
+                    stopProgressTimer();
+                }
             });
         };		     
 

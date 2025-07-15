@@ -40,7 +40,7 @@ const generateCodeChallenge = async (codeVerifier) => {
     return base64encode(hashed);
 };
 
-//get access code
+// get access code
 const redirectToSpotifyAuthorize = async () => {
     const codeVerifier = generateCodeVerifier();
     localStorage.setItem('code_verifier', codeVerifier);
@@ -54,17 +54,18 @@ const redirectToSpotifyAuthorize = async () => {
         code_challenge: codeChallenge,
         scope: scopes
     });
-	
-	  window.open(authUrl).focus();
+
+    // Use redirect instead of pop-up
+    window.location.href = authUrl;
 };
 
-const getCodeToken = async () => {
+const getCodeToken = async (code) => {
     try {
         const response = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
-                code: getAccessCode(),
+                code: code,
                 redirect_uri: redirectUri,
                 grant_type: 'authorization_code',
                 code_verifier: localStorage.getItem('code_verifier'),
@@ -75,6 +76,8 @@ const getCodeToken = async () => {
         const data = await response.json();
         localStorage.setItem('spotify_access_token', data.access_token);
         localStorage.setItem('spotify_refresh_token', data.refresh_token);
+        // Clean up URL (remove code param)
+        window.history.replaceState({}, document.title, redirectUri);
         window.location.reload();
     } catch (error) {
         console.error('Error fetching access token:', error);
@@ -107,4 +110,12 @@ const refreshAccessToken = async () => {
 };
 
 const retrieveAccessToken = () => localStorage.getItem('spotify_access_token');
-const getAccessCode = () => localStorage.getItem('spotify_access_code');
+
+// On page load, check for ?code= in the URL and exchange it for tokens
+(function handleSpotifyAuthCode() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+        getCodeToken(code);
+    }
+})();
