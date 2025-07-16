@@ -125,10 +125,10 @@ const retrieveAccessToken = () => localStorage.getItem('spotify_access_token');
         await refreshAccessToken();
         if (!retrieveAccessToken()) {
             // If refresh failed, redirect
-            // redirectToSpotifyAuthorize(); // Temporarily disabled for testing
+            redirectToSpotifyAuthorize();
         }
     } else {
         // No tokens, redirect to authorize
-        // redirectToSpotifyAuthorize(); // Temporarily disabled for testing
+        redirectToSpotifyAuthorize();
     }
 })();
