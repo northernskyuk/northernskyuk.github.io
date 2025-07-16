@@ -68,58 +68,63 @@ function populateSearchButtons(results) {
     const buttons = document.querySelectorAll('#resultsButtonSection .button');
     showResults(); // Toggle the visibility of results section
 
+    let items = [];
+    switch (selectedFilter.toLowerCase()) {
+        case 'track':
+            items = results.tracks.items;
+            break;
+        case 'album':
+            items = results.albums.items;
+            break;
+        case 'artist':
+            items = results.artists.items;
+            break;
+        case 'playlist':
+            items = results.playlists.items;
+            break;
+        default:
+            console.error("Unknown search type");
+            return;
+    }
+
+    // Filter out null items
+    const filteredItems = items.filter(item => item !== null && item !== undefined);
+
     buttons.forEach((button, index) => {
-        let item, artworkUrl, name, secondaryInfo, uri;
+        const item = filteredItems[index];
+        let artworkUrl, name, secondaryInfo, uri;
 
-        // Determine the structure based on the selected filter
-        switch (selectedFilter.toLowerCase()) {
-            case 'track':
-                item = results.tracks.items[index];
-                if (item) {
-                    artworkUrl = item.album.images[0]?.url;
-                    name = item.name;
-                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
-                    uri = item.uri;
-                }
-                break;
-            case 'album':
-                item = results.albums.items[index];
-                if (item) {
-                    artworkUrl = item.images[0]?.url;
-                    name = item.name;
-                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
-                    uri = item.uri;
-                }
-                break;
-            case 'artist':
-                item = results.artists.items[index];
-                if (item) {
-                    artworkUrl = item.images[0]?.url;
-                    name = item.name;
-                    secondaryInfo = "Artist";
-                    uri = item.uri;
-                }
-                break;
-            case 'playlist':
-                item = results.playlists.items[index];
-                if (item) {
-                    artworkUrl = item.images[0]?.url;
-                    name = item.name;
-                    secondaryInfo = `by ${item.owner.display_name}`;
-                    uri = item.uri;
-                }
-                break;
-            default:
-                console.error("Unknown search type");
-                return;
-        }
-
-        // Populate or clear button based on whether item exists
         const artworkElement = button.querySelector('.button-artwork');
         const trackNameElement = button.querySelector('.button-track-name');
         const artistNameElement = button.querySelector('.button-artist-name');
 
         if (item) {
+            switch (selectedFilter.toLowerCase()) {
+                case 'track':
+                    artworkUrl = item.album.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
+                    uri = item.uri;
+                    break;
+                case 'album':
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = item.artists.map(artist => artist.name).join(', ');
+                    uri = item.uri;
+                    break;
+                case 'artist':
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = "Artist";
+                    uri = item.uri;
+                    break;
+                case 'playlist':
+                    artworkUrl = item.images[0]?.url;
+                    name = item.name;
+                    secondaryInfo = `by ${item.owner.display_name}`;
+                    uri = item.uri;
+                    break;
+            }
             if (artworkElement) {
                 artworkElement.src = artworkUrl || '';
                 artworkElement.alt = `${name} Artwork`;
@@ -129,7 +134,6 @@ function populateSearchButtons(results) {
             if (artistNameElement) artistNameElement.textContent = secondaryInfo;
 
             button.dataset.trackUri = uri;
-            button.style.display = 'flex';
         } else {
             if (trackNameElement) trackNameElement.textContent = '';
             if (artistNameElement) artistNameElement.textContent = '';
@@ -139,7 +143,7 @@ function populateSearchButtons(results) {
                 artworkElement.style.visibility = 'hidden';
             }
             delete button.dataset.trackUri;
-            button.style.display = 'flex'; // Keep button visible but empty
         }
+        button.style.display = 'flex'; // Always show the button
     });
 } 
