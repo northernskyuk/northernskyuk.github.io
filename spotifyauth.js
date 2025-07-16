@@ -110,13 +110,25 @@ const refreshAccessToken = async () => {
 const retrieveAccessToken = () => localStorage.getItem('spotify_access_token');
 
 // On page load, check for ?code= in the URL and exchange it for tokens
-(function handleSpotifyAuthCode() {
+(async function handleSpotifyAuthCode() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const accessToken = retrieveAccessToken();
+    const refreshToken = localStorage.getItem('spotify_refresh_token');
+
     if (code) {
-        getCodeToken(code);
-    } else if (!accessToken) {
+        await getCodeToken(code);
+    } else if (accessToken) {
+        // Access token exists, do nothing
+    } else if (refreshToken) {
+        // Try to refresh the access token
+        await refreshAccessToken();
+        if (!retrieveAccessToken()) {
+            // If refresh failed, redirect
+            redirectToSpotifyAuthorize();
+        }
+    } else {
+        // No tokens, redirect to authorize
         redirectToSpotifyAuthorize();
     }
 })();
