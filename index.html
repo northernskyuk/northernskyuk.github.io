@@ -370,38 +370,38 @@ document.addEventListener('DOMContentLoaded', function() {
         connectMessage.textContent = "Press a button to connect to Spotify";
         connectMessage.style.display = 'block';
     }
-});
 
-// Add event listeners for the new control buttons in search section
-document.getElementById('shuffle').addEventListener('click', () => {
-    const button = document.getElementById('shuffle');
-    button.classList.add('active');
-    setTimeout(() => button.classList.remove('active'), 100);
-    toggleShuffle();
-});
+    // Add event listeners for the new control buttons in search section
+    document.getElementById('shuffle').addEventListener('click', () => {
+        const button = document.getElementById('shuffle');
+        button.classList.add('active');
+        setTimeout(() => button.classList.remove('active'), 100);
+        toggleShuffle();
+    });
 
-document.getElementById('volumeUp').addEventListener('click', () => {
-    const button = document.getElementById('volumeUp');
-    button.classList.add('active');
-    setTimeout(() => button.classList.remove('active'), 100);
-    if (window.player) {
-        window.player.getVolume().then(currentVolume => {
-            const newVolume = Math.min(1, currentVolume + 0.05);
-            window.player.setVolume(newVolume);
-        });
-    }
-});
+    document.getElementById('volumeUp').addEventListener('click', () => {
+        const button = document.getElementById('volumeUp');
+        button.classList.add('active');
+        setTimeout(() => button.classList.remove('active'), 100);
+        if (window.player) {
+            window.player.getVolume().then(currentVolume => {
+                const newVolume = Math.min(1, currentVolume + 0.05);
+                window.player.setVolume(newVolume);
+            });
+        }
+    });
 
-document.getElementById('volumeDown').addEventListener('click', () => {
-    const button = document.getElementById('volumeDown');
-    button.classList.add('active');
-    setTimeout(() => button.classList.remove('active'), 100);
-    if (window.player) {
-        window.player.getVolume().then(currentVolume => {
-            const newVolume = Math.max(0, currentVolume - 0.05);
-            window.player.setVolume(newVolume);
-        });
-    }
+    document.getElementById('volumeDown').addEventListener('click', () => {
+        const button = document.getElementById('volumeDown');
+        button.classList.add('active');
+        setTimeout(() => button.classList.remove('active'), 100);
+        if (window.player) {
+            window.player.getVolume().then(currentVolume => {
+                const newVolume = Math.max(0, currentVolume - 0.05);
+                window.player.setVolume(newVolume);
+            });
+        }
+    });
 });
 
 // Function to toggle shuffle using Spotify Web API
