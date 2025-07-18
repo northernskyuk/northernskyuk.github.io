@@ -26,6 +26,9 @@
             volume: 0.5
         });
 
+        // Make player globally accessible
+        window.player = player;
+
         let fetchPlayQueueTimeout;
         const debouncedFetchPlayQueue = () => {
             if (fetchPlayQueueTimeout) {
@@ -279,6 +282,31 @@ document.querySelectorAll('#searchButtonSection .button').forEach(button => {
     }
 });
 
+// Add event listeners for the new control buttons in search section
+document.getElementById('shuffle').addEventListener('click', () => {
+    if (window.player) {
+        window.player.toggleShuffle();
+    }
+});
+
+document.getElementById('volumeUp').addEventListener('click', () => {
+    if (window.player) {
+        window.player.getVolume().then(currentVolume => {
+            const newVolume = Math.min(1, currentVolume + 0.05);
+            window.player.setVolume(newVolume);
+        });
+    }
+});
+
+document.getElementById('volumeDown').addEventListener('click', () => {
+    if (window.player) {
+        window.player.getVolume().then(currentVolume => {
+            const newVolume = Math.max(0, currentVolume - 0.05);
+            window.player.setVolume(newVolume);
+        });
+    }
+});
+
 //Listener to play search result 
         document.querySelectorAll('#resultsButtonSection .button').forEach((button, index) => {
             if (index < 12) {
@@ -459,15 +487,15 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="button" id ="category">TRACK</div>
         <div class="button" data-letters="ABC">ABC</div>
         <div class="button" data-letters="DEF">DEF</div>
-        <div class="button"></div>
+        <div class="button" id="shuffle"><i class="fas fa-random"></i></div>
         <div class="button" data-letters="GHI">GHI</div>
         <div class="button" data-letters="JKL">JKL</div>
         <div class="button" data-letters="MNO">MNO</div>
-        <div class="button"></div>
+        <div class="button" id="volumeUp"><i class="fas fa-volume-up"></i></div>
         <div class="button" data-letters="PQRS">PQRS</div>
         <div class="button" data-letters="TUV">TUV</div>
         <div class="button" data-letters="WXYZ">WXYZ</div>		
-        <div class="button"></div>
+        <div class="button" id="volumeDown"><i class="fas fa-volume-down"></i></div>
 		<div class="button" id="search2">
         <i class="fas fa-backward"></i> <!-- Search icon for SEARCH -->
     </div>
