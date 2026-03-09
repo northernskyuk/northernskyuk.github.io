@@ -6,7 +6,7 @@
   console.log(event);
   const accessCode = event.data.code;
       localStorage.setItem('spotify_access_code', accessCode);
-	 getCodeToken();	  
+	 getCodeToken(accessCode);	  
   },
   false,
 );
