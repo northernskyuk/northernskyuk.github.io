@@ -1,41 +1,4 @@
-	window.addEventListener(
-  "message",
-  (event) => {
-  if (event.origin !== "https://northernskyuk.github.io") return;
-   if (!event.data || event.data.type !== 'spotify-auth') return;
-  console.log(event);
-  const accessCode = event.data.code;
-      localStorage.setItem('spotify_access_code', accessCode);
-	 getCodeToken(accessCode);	  
-  },
-  false,
-);
-
-const clientId = 'b8aa6c40699b4bfa9ea2436a2dd92657';
-const redirectUri = 'https://northernskyuk.github.io/index.html';
-const scopes = 'streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state app-remote-control';
-
-// PKCE: Generate Code Verifier and Challenge
-const generateRandomString = (length) => {
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const values = crypto.getRandomValues(new Uint8Array(length));
-    return values.reduce((acc, x) => acc + possible[x % possible.length], "");
-};
-
-const generateCodeVerifier = () => generateRandomString(64);
-
-const sha256 = async (plain) => {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return window.crypto.subtle.digest('SHA-256', data);
-};
-
-const base64encode = (input) => {
-    return btoa(String.fromCharCode(...new Uint8Array(input)))
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-
-window.addEventListener(
+﻿window.addEventListener(
     "message",
     (event) => {
         if (event.origin !== "https://northernskyuk.github.io") return;
@@ -62,7 +25,6 @@ const TOKEN_EXPIRY_SAFETY_MS = 30000;
 
 let refreshInFlight = null;
 
-// PKCE: Generate Code Verifier and Challenge
 const generateRandomString = (length) => {
     const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     const values = crypto.getRandomValues(new Uint8Array(length));
@@ -263,7 +225,6 @@ const getAuthHeaders = async (headers = {}) => {
     };
 };
 
-// On page load, check for ?code= in the URL and exchange it for tokens.
 (async function handleSpotifyAuthCode() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");

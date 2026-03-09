@@ -15,11 +15,12 @@
 <script src="search.js"></script>
 <script async src="https://sdk.scdn.co/spotify-player.js"></script>
 <script>
-   if (!hasSpotifySession()) {
-       // redirectToSpotifyAuthorize();
-    }
- else {
     window.onSpotifyWebPlaybackSDKReady = () => {
+        if (!hasSpotifySession()) {
+            console.warn('Spotify session not available yet; skipping SDK player initialization.');
+            return;
+        }
+
         const player = new Spotify.Player({
             name: 'Jubeat Jukebox',
             getOAuthToken: async cb => {
@@ -337,7 +338,6 @@ document.addEventListener('keydown', (event) => {
     }
 });
     };
-	}
 	
 	function populateButtons(tracks) {
     const buttons = document.querySelectorAll('#mainButtonSection .button');
