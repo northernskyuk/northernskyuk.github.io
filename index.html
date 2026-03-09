@@ -172,17 +172,96 @@
             });
         };		     
 
-        document.querySelectorAll('.button').forEach((button, index) => {
-            if (index < 12) {
-                button.addEventListener('click', () => {
-                    const trackUri = button.dataset.trackUri;
-                    if (trackUri) {
-                        playTrack(trackUri);
-                    } else {
-                        console.error('No track URI found for this button');
-                    }
-                });
+        const LONG_PRESS_MS = 500;
+        const QUEUE_SKIP_STEP_DELAY_MS = 220;
+        let queueSkipInProgress = false;
+
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        const jumpToQueueIndex = async (queueIndex) => {
+            if (!window.player) {
+                console.error('Spotify player not available');
+                return;
             }
+
+            if (queueSkipInProgress) {
+                console.warn('Queue skip already in progress');
+                return;
+            }
+
+            const steps = queueIndex + 1;
+            queueSkipInProgress = true;
+
+            try {
+                for (let step = 0; step < steps; step++) {
+                    await player.nextTrack();
+                    await wait(QUEUE_SKIP_STEP_DELAY_MS);
+                }
+                updateState();
+            } finally {
+                queueSkipInProgress = false;
+            }
+        };
+
+        const handleMainQueueButtonPress = async (button, index, isLongPress) => {
+            const trackUri = button.dataset.trackUri;
+            if (!trackUri) {
+                console.error('No track URI found for this button');
+                return;
+            }
+
+            if (isLongPress) {
+                if (queueSkipInProgress) {
+                    console.warn('Queue skip in progress, ignoring takeover request');
+                    return;
+                }
+                await playTrack(trackUri); // Takeover play (replaces queue/context)
+                return;
+            }
+
+            await jumpToQueueIndex(index); // Queue-safe jump via repeated nextTrack
+        };
+
+        document.querySelectorAll('#mainButtonSection .button').forEach((button, index) => {
+            if (index >= 12) return;
+
+            let pressTimer = null;
+
+            const startLongPressTimer = () => {
+                if (!button.dataset.trackUri) return;
+                button.dataset.longPressTriggered = 'false';
+                pressTimer = setTimeout(() => {
+                    button.dataset.longPressTriggered = 'true';
+                    handleMainQueueButtonPress(button, index, true);
+                }, LONG_PRESS_MS);
+            };
+
+            const clearLongPressTimer = () => {
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+            };
+
+            button.addEventListener('mousedown', startLongPressTimer);
+            button.addEventListener('touchstart', startLongPressTimer, { passive: true });
+            button.addEventListener('mouseup', clearLongPressTimer);
+            button.addEventListener('mouseleave', clearLongPressTimer);
+            button.addEventListener('touchend', clearLongPressTimer);
+            button.addEventListener('touchcancel', clearLongPressTimer);
+            button.addEventListener('contextmenu', (event) => event.preventDefault());
+
+            button.addEventListener('click', (event) => {
+                if (button.dataset.longPressTriggered === 'true') {
+                    button.dataset.longPressTriggered = 'false';
+                    event.preventDefault();
+                    return;
+                }
+
+                handleMainQueueButtonPress(button, index, false);
+            });
+
+            button.title = 'Tap: queue-safe jump. Hold: play now (replaces queue).';
         });
 
         document.getElementById('togglePlay').onclick = () => {
@@ -207,6 +286,8 @@
   'a': 8, 's': 9, 'd': 10, 'f': 11,
   'z': 12, 'x': 13, 'c': 14, 'v': 15
 };
+
+const keyPressStartTimes = {};
 
 // Add event listener to the search button in the main button section
 document.getElementById('search').addEventListener('click', toggleSearchMode);
@@ -315,9 +396,13 @@ document.addEventListener('keydown', (event) => {
     const mainButtonSection = document.getElementById('mainButtonSection');
     const searchButtonSection = document.getElementById('searchButtonSection');	
     const resultsButtonSection = document.getElementById('resultsButtonSection');
-	
- if (event.key.toLowerCase() === 'z') {
+
+ if (key === 'z') {
         event.preventDefault(); // Prevent the toggle key from being input into search box
+    }
+
+    if (event.repeat) {
+        return;
     }
 
     // Determine which button set is visible
@@ -332,10 +417,47 @@ document.addEventListener('keydown', (event) => {
     // Get button index from the shared key-to-button mapping
     const buttonIndex = keyToButtonIndex[key];
     if (buttonIndex !== undefined && buttons[buttonIndex]) {
-        buttons[buttonIndex].click(); // Simulate button click
         buttons[buttonIndex].classList.add('active'); // Add visual feedback
+
+        // For main queue tiles, resolve short vs long press on keyup.
+        if (isMainVisible && buttonIndex < 12) {
+            keyPressStartTimes[key] = Date.now();
+            return;
+        }
+
+        buttons[buttonIndex].click(); // Simulate button click for non-main modes
         setTimeout(() => buttons[buttonIndex].classList.remove('active'), 100); // Remove feedback
     }
+});
+
+document.addEventListener('keyup', (event) => {
+    const key = event.key.toLowerCase();
+    const mainButtonSection = document.getElementById('mainButtonSection');
+    const resultsButtonSection = document.getElementById('resultsButtonSection');
+
+    const isMainVisible = mainButtonSection.style.display === 'grid' || mainButtonSection.style.display === '';
+    const isResultVisible = resultsButtonSection.style.display === 'grid';
+    const buttons = isMainVisible
+        ? document.querySelectorAll('#mainButtonSection .button')
+        : (isResultVisible ? document.querySelectorAll('#resultsButtonSection .button') : document.querySelectorAll('#searchButtonSection .button'));
+
+    const buttonIndex = keyToButtonIndex[key];
+    if (buttonIndex === undefined || !buttons[buttonIndex]) {
+        return;
+    }
+
+    const button = buttons[buttonIndex];
+    button.classList.remove('active');
+
+    if (!(isMainVisible && buttonIndex < 12)) {
+        return;
+    }
+
+    const startedAt = keyPressStartTimes[key] || Date.now();
+    delete keyPressStartTimes[key];
+
+    const isLongPress = (Date.now() - startedAt) >= LONG_PRESS_MS;
+    handleMainQueueButtonPress(button, buttonIndex, isLongPress);
 });
     };
 	

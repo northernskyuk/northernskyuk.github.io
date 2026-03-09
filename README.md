@@ -7,3 +7,5 @@ Initial version has a fair bit of jank to be fixed:
 * Authorisation needs keyboard for initial version to enter your username/password - makes it awkward to use on a real cab first time. After you have authorized once and got a refresh token it's less of an issue. Will look at a backend to allow users to authenticate from another device via QR code.  
 
 * Hardware input - currently it uses the typical jubeat keyboard mapping (1234/qwer/asdf/zxcv) so things like a DAO will work. I have made a version of DragonMindeds JubeatMenu which sends keyboard presses from the panel, allowing a real cab/p4io to send commands to a browser window.
+
+* Queue tile behavior (main 12 song buttons): short press performs a queue-safe jump by stepping `next` to the selected queue slot, while long press performs an immediate takeover play (which can replace queue/context).
