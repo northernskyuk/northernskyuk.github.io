@@ -15,14 +15,22 @@
 <script src="search.js"></script>
 <script async src="https://sdk.scdn.co/spotify-player.js"></script>
 <script>
-   if (!retrieveAccessToken()) {
+   if (!hasSpotifySession()) {
        // redirectToSpotifyAuthorize();
     }
  else {
     window.onSpotifyWebPlaybackSDKReady = () => {
         const player = new Spotify.Player({
             name: 'Jubeat Jukebox',
-            getOAuthToken: cb => { cb(retrieveAccessToken()); },
+            getOAuthToken: async cb => {
+                const token = await getValidAccessToken();
+                if (token) {
+                    cb(token);
+                    return;
+                }
+
+                await redirectToSpotifyAuthorize('sdk_oauth_token_unavailable');
+            },
             volume: 0.5
         });
 
@@ -63,10 +71,13 @@
             console.error(message);
         });
 
-        player.addListener('authentication_error', ({ message }) => {
+        player.addListener('authentication_error', async ({ message }) => {
             console.error(message);
             localStorage.removeItem('spotify_access_token');
-            redirectToSpotifyAuthorize();
+            const refreshed = await refreshAccessToken(true);
+            if (!refreshed) {
+                await redirectToSpotifyAuthorize('sdk_authentication_error');
+            }
         });
 
         player.addListener('account_error', ({ message }) => {
@@ -94,7 +105,7 @@
 
         // --- Global Spotify auth check for all .button elements ---
         function ensureSpotifyAuth() {
-            if (!retrieveAccessToken()) {
+            if (!hasSpotifySession()) {
                 redirectToSpotifyAuthorize();
                 return false;
             }
@@ -412,12 +423,16 @@ async function toggleShuffle() {
         return;
     }
 
+    const authHeaders = await getAuthHeaders();
+    if (!authHeaders) {
+        await redirectToSpotifyAuthorize('toggle_shuffle_missing_token');
+        return;
+    }
+
     try {
         // First get current shuffle state
         const stateResponse = await fetch(`https://api.spotify.com/v1/me/player?device_id=${device_id}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
-            }
+            headers: authHeaders
         });
 
         if (stateResponse.ok) {
@@ -429,9 +444,7 @@ async function toggleShuffle() {
             
             const response = await fetch(`https://api.spotify.com/v1/me/player/shuffle?state=${newShuffleState}&device_id=${device_id}`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
-                }
+                headers: authHeaders
             });
 
             if (response.ok) {

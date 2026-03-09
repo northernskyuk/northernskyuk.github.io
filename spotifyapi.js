@@ -1,14 +1,28 @@
 const fetchWithRefresh = async (url, options = {}) => {
-    options.headers = {
-        ...options.headers,
-        'Authorization': `Bearer ${localStorage.getItem('spotify_access_token')}`
-    };
+    const authHeaders = await getAuthHeaders(options.headers || {});
+    if (!authHeaders) {
+        await redirectToSpotifyAuthorize('missing_or_expired_token_for_api');
+        throw new Error('No valid Spotify access token available');
+    }
+
+    options.headers = authHeaders;
 
     let response = await fetch(url, options);
 
     if (response.status === 401) {
-        await refreshAccessToken();
-        options.headers['Authorization'] = `Bearer ${localStorage.getItem('spotify_access_token')}`;
+        const refreshed = await refreshAccessToken(true);
+        if (!refreshed) {
+            await redirectToSpotifyAuthorize('refresh_failed_after_401');
+            throw new Error('Spotify token refresh failed after 401');
+        }
+
+        const refreshedHeaders = await getAuthHeaders(options.headers || {});
+        if (!refreshedHeaders) {
+            await redirectToSpotifyAuthorize('missing_token_after_refresh');
+            throw new Error('No valid Spotify access token after refresh');
+        }
+
+        options.headers = refreshedHeaders;
         response = await fetch(url, options);
     }
 
