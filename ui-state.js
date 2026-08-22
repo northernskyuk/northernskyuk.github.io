@@ -114,6 +114,38 @@ const showConnectDevices = async () => {
     }
 };
 
+const showDeviceSelector = async () => {
+    const buttons = document.querySelectorAll('#mainButtonSection .button');
+    buttons.forEach(button => {
+        button.style.display = 'none';
+        delete button.dataset.trackUri;
+        delete button.dataset.deviceId;
+        delete button.dataset.playbackMode;
+    });
+
+    const browserButton = buttons[0];
+    setButtonLabel(browserButton, 'BROWSER PLAYBACK');
+    browserButton.dataset.playbackMode = 'browser';
+    browserButton.classList.add('playback-choice');
+
+    try {
+        const { devices } = await fetchSpotifyDevices();
+        devices.slice(0, 11).forEach((device, index) => {
+            const button = buttons[index + 1];
+            setButtonLabel(button, device.name);
+            button.dataset.deviceId = device.id;
+            button.classList.add('connect-device', 'playback-choice');
+            button.title = `${device.type}${device.is_active ? ' (active)' : ''}`;
+        });
+        document.getElementById('connectMessage').textContent = 'Choose a playback device';
+    } catch (error) {
+        console.error('Error fetching Spotify devices:', error);
+        setButtonLabel(buttons[1], 'DEVICES UNAVAILABLE');
+        document.getElementById('connectMessage').textContent = 'Spotify Connect devices unavailable';
+    }
+    document.getElementById('connectMessage').style.display = 'block';
+};
+
 const selectPlaybackMode = async (mode) => {
     if (mode === 'browser') {
         setSelectedDeviceId(null);
@@ -123,6 +155,18 @@ const selectPlaybackMode = async (mode) => {
     }
 
     await showConnectDevices();
+};
+
+const selectPlaybackTarget = async (button) => {
+    if (button.dataset.playbackMode === 'browser') {
+        setSelectedDeviceId(null);
+        localStorage.setItem(PLAYBACK_MODE_KEY, 'browser');
+        window.location.reload();
+        return;
+    }
+    if (button.dataset.deviceId) {
+        await selectConnectDevice(button.dataset.deviceId);
+    }
 };
 
 const selectConnectDevice = async (deviceId) => {

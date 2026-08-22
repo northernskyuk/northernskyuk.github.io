@@ -28,11 +28,45 @@ function initInputHandling() {
         }
     });
     document.getElementById('mainButtonSection').addEventListener('click', (event) => {
+        const playbackButton = event.target.closest('[data-playback-mode], [data-device-id]');
+        if (playbackButton && (playbackButton.dataset.playbackMode || playbackButton.dataset.deviceId)) {
+            selectPlaybackTarget(playbackButton);
+            return;
+        }
         const deviceButton = event.target.closest('[data-device-id]');
         if (deviceButton && deviceButton.dataset.deviceId) {
             selectConnectDevice(deviceButton.dataset.deviceId);
         }
     });
+
+    const playButton = document.getElementById('togglePlay');
+    let deviceSelectorTimer = null;
+    let deviceSelectorOpened = false;
+    const startDeviceSelectorTimer = () => {
+        deviceSelectorOpened = false;
+        deviceSelectorTimer = setTimeout(() => {
+            deviceSelectorOpened = true;
+            showDeviceSelector();
+        }, 1200);
+    };
+    const clearDeviceSelectorTimer = () => {
+        if (deviceSelectorTimer) clearTimeout(deviceSelectorTimer);
+        deviceSelectorTimer = null;
+    };
+    playButton.addEventListener('mousedown', startDeviceSelectorTimer);
+    playButton.addEventListener('touchstart', startDeviceSelectorTimer, { passive: true });
+    playButton.addEventListener('mouseup', clearDeviceSelectorTimer);
+    playButton.addEventListener('mouseleave', clearDeviceSelectorTimer);
+    playButton.addEventListener('touchend', clearDeviceSelectorTimer);
+    playButton.addEventListener('touchcancel', clearDeviceSelectorTimer);
+    playButton.addEventListener('contextmenu', event => event.preventDefault());
+    playButton.addEventListener('click', event => {
+        if (deviceSelectorOpened) {
+            deviceSelectorOpened = false;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    }, true);
     document.getElementById('textInputDisplay').addEventListener('keydown', (event) => {
         event.preventDefault();
     });
