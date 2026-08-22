@@ -13,7 +13,7 @@
 
 const clientId = "b8aa6c40699b4bfa9ea2436a2dd92657";
 const redirectUri = "https://northernskyuk.github.io/index.html";
-const scopes = "streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state app-remote-control";
+const scopes = "streaming user-read-email user-read-private user-read-currently-playing user-read-playback-state user-modify-playback-state app-remote-control";
 
 const SPOTIFY_ACCESS_TOKEN_KEY = "spotify_access_token";
 const SPOTIFY_REFRESH_TOKEN_KEY = "spotify_refresh_token";

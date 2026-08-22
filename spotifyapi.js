@@ -44,6 +44,83 @@ const fetchPlayQueue = async () => {
     }
 };
 
+const SELECTED_DEVICE_ID_KEY = 'spotify_selected_device_id';
+
+const getSelectedDeviceId = () => localStorage.getItem(SELECTED_DEVICE_ID_KEY);
+
+const setSelectedDeviceId = (deviceId) => {
+    if (deviceId) {
+        localStorage.setItem(SELECTED_DEVICE_ID_KEY, deviceId);
+    } else {
+        localStorage.removeItem(SELECTED_DEVICE_ID_KEY);
+    }
+};
+
+const fetchSpotifyDevices = async () => {
+    const response = await fetchWithRefresh('https://api.spotify.com/v1/me/player/devices');
+    if (!response.ok) {
+        throw new Error(`Failed to fetch Spotify devices: ${response.status}`);
+    }
+    return response.json();
+};
+
+const transferPlayback = async (deviceId, play = false) => {
+    const options = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ device_ids: [deviceId], play })
+    };
+    const response = await fetchWithRefresh('https://api.spotify.com/v1/me/player', options);
+    if (!response.ok) {
+        throw new Error(`Failed to transfer playback: ${response.status}`);
+    }
+};
+
+const fetchPlaybackState = async () => {
+    const response = await fetchWithRefresh('https://api.spotify.com/v1/me/player');
+    if (response.status === 204) return null;
+    if (!response.ok) {
+        throw new Error(`Failed to fetch playback state: ${response.status}`);
+    }
+    return response.json();
+};
+
+const sendPlaybackCommand = async (command) => {
+    const deviceId = getSelectedDeviceId();
+    const query = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : '';
+    const response = await fetchWithRefresh(`https://api.spotify.com/v1/me/player/${command}${query}`, {
+        method: 'POST'
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to send playback command: ${response.status}`);
+    }
+};
+
+const setPlaybackPaused = async (paused) => {
+    const deviceId = getSelectedDeviceId();
+    const query = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : '';
+    const response = await fetchWithRefresh(`https://api.spotify.com/v1/me/player/${paused ? 'pause' : 'play'}${query}`, {
+        method: 'PUT'
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to update playback state: ${response.status}`);
+    }
+};
+
+const setPlaybackVolume = async (volumePercent) => {
+    const deviceId = getSelectedDeviceId();
+    const query = new URLSearchParams({ volume_percent: String(volumePercent) });
+    if (deviceId) query.set('device_id', deviceId);
+    const response = await fetchWithRefresh(`https://api.spotify.com/v1/me/player/volume?${query}`, {
+        method: 'PUT'
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to set playback volume: ${response.status}`);
+    }
+};
+
 
 // Spotify Search Function
 async function searchSpotify(query) {
@@ -73,8 +150,10 @@ async function searchSpotify(query) {
 
 const playTrack = async (trackUri) => {
 		console.log(trackUri);
-		const device_id = localStorage.getItem('device_id');
-            const url = 'https://api.spotify.com/v1/me/player/play?device_id='+device_id;
+            const deviceId = getSelectedDeviceId();
+            const url = deviceId
+                ? `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(deviceId)}`
+                : 'https://api.spotify.com/v1/me/player/play';
              const options = {
         method: 'PUT',
         headers: {

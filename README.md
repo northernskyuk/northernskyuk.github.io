@@ -1,5 +1,7 @@
 Prototype Spotify Client for Jubeat controllers/cabs
 
+Architecture and file ownership guide: `docs/ARCHITECTURE.md`
+
 Initial version has a fair bit of jank to be fixed:
 
 * If you are playing from a queue the next tracks will show on the buttons. If you select a button it will play that track but replaces the queue. I think this is a limitation of the Spotify Web SDK but will look at workarounds as it's annoying. 
@@ -8,4 +10,4 @@ Initial version has a fair bit of jank to be fixed:
 
 * Hardware input - currently it uses the typical jubeat keyboard mapping (1234/qwer/asdf/zxcv) so things like a DAO will work. I have made a version of DragonMindeds JubeatMenu which sends keyboard presses from the panel, allowing a real cab/p4io to send commands to a browser window.
 
-* Queue tile behavior (main 12 song buttons): short press performs a queue-safe jump by stepping `next` to the selected queue slot, while long press performs an immediate takeover play (which can replace queue/context).
+* Queue tile behavior (main 12 song buttons): short press performs a queue-safe jump by stepping `next` to the selected queue slot, while long press performs an immediate takeover play (which can replace queue/context). Keyboard/cabinet input is queue-safe by default (no keyboard long-press takeover) to avoid accidental queue replacement from key-hook timing. You can re-enable keyboard long-press by toggling `ENABLE_KEYBOARD_LONG_PRESS` in `input-handling.js`.
