@@ -58,12 +58,21 @@ const hidePlaybackChoiceLabels = () => {
     document.querySelectorAll('.playback-choice-label').forEach(label => {
         label.style.display = 'none';
     });
+    document.querySelectorAll('.playback-choice').forEach(button => {
+        button.classList.remove('playback-choice');
+    });
+};
+
+const showPlaybackGrid = () => {
+    document.querySelectorAll('#mainButtonSection .button').forEach(button => {
+        button.style.display = 'flex';
+    });
 };
 
 const showPlaybackChoice = () => {
     const buttons = document.querySelectorAll('#mainButtonSection .button');
     buttons.forEach((button, index) => {
-        button.style.display = index < 2 ? 'flex' : 'none';
+        button.style.display = 'flex';
         button.dataset.setupChoice = index < 2 ? 'true' : 'false';
         delete button.dataset.deviceId;
         delete button.dataset.trackUri;
@@ -178,10 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         showPlaybackChoice();
     } else if (playbackMode === 'connect') {
         hidePlaybackChoiceLabels();
+        showPlaybackGrid();
         fetchPlayQueue();
         window.playbackSetupComplete = true;
     } else {
         hidePlaybackChoiceLabels();
+        showPlaybackGrid();
     }
     bindConnectControls();
     updateConnectMessage();

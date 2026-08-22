@@ -281,6 +281,10 @@ window.onSpotifyWebPlaybackSDKReady = () => {
     player.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
         localStorage.setItem('device_id', device_id);
+        setSelectedDeviceId(device_id);
+        transferPlayback(device_id).catch(error => {
+            console.error('Error transferring playback to browser:', error);
+        });
     });
 
     player.addListener('not_ready', ({ device_id }) => {
