@@ -176,6 +176,7 @@ const playTrack = async (trackUri) => {
                 const response = await fetchWithRefresh(url, options);
                 if (response.ok) {
                     console.log(`Playing track: ${trackUri}`);
+                    await fetchPlayQueue();
                 } else {
                     console.error('Failed to play track:', response.status);
                 }

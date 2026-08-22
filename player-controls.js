@@ -108,15 +108,22 @@ function ensureSpotifyAuth() {
     return true;
 }
 
-async function jumpToQueueIndex(queueIndex) {
+async function jumpToQueueIndex(queueIndex, targetUri) {
     if (isConnectMode()) {
         if (queueSkipInProgress) return;
         queueSkipInProgress = true;
         try {
             for (let step = 0; step <= queueIndex; step++) {
                 await sendPlaybackCommand('next');
-                await wait(QUEUE_SKIP_STEP_DELAY_MS);
+                let state = null;
+                for (let attempt = 0; attempt < 5; attempt++) {
+                    await wait(QUEUE_SKIP_STEP_DELAY_MS);
+                    state = await fetchPlaybackState();
+                    if (state?.item?.uri === targetUri) break;
+                }
+                if (state?.item?.uri === targetUri) break;
             }
+            await fetchPlayQueue();
             updateState();
         } finally {
             queueSkipInProgress = false;
@@ -140,7 +147,13 @@ async function jumpToQueueIndex(queueIndex) {
     try {
         for (let step = 0; step < steps; step++) {
             await window.player.nextTrack();
-            await wait(QUEUE_SKIP_STEP_DELAY_MS);
+            let state = null;
+            for (let attempt = 0; attempt < 5; attempt++) {
+                await wait(QUEUE_SKIP_STEP_DELAY_MS);
+                state = await window.player.getCurrentState();
+                if (state?.track_window?.current_track?.uri === targetUri) break;
+            }
+            if (state?.track_window?.current_track?.uri === targetUri) break;
         }
         updateState();
     } finally {
@@ -164,7 +177,7 @@ async function handleMainQueueButtonPress(button, index, isLongPress) {
         return;
     }
 
-    await jumpToQueueIndex(index);
+    await jumpToQueueIndex(index, trackUri);
 }
 
 async function toggleShuffle() {
@@ -226,8 +239,16 @@ function bindConnectControls() {
             console.error('Error toggling Connect playback:', error);
         }
     };
-    document.getElementById('previousTrack').onclick = () => sendPlaybackCommand('previous').then(updateState);
-    document.getElementById('nextTrack').onclick = () => sendPlaybackCommand('next').then(updateState);
+    document.getElementById('previousTrack').onclick = async () => {
+        await sendPlaybackCommand('previous');
+        await fetchPlayQueue();
+        updateState();
+    };
+    document.getElementById('nextTrack').onclick = async () => {
+        await sendPlaybackCommand('next');
+        await fetchPlayQueue();
+        updateState();
+    };
     startConnectStatePolling();
 }
 

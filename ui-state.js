@@ -21,8 +21,13 @@ function populateButtons(tracks) {
         } else {
             if (trackNameElement) trackNameElement.textContent = '';
             if (artistNameElement) artistNameElement.textContent = '';
-            if (artworkElement) artworkElement.style.visibility = 'hidden';
+            if (artworkElement) {
+                artworkElement.src = '';
+                artworkElement.alt = 'No Artwork';
+                artworkElement.style.visibility = 'hidden';
+            }
             delete button.dataset.trackUri;
+            button.style.display = 'flex';
         }
     });
 }
@@ -43,13 +48,10 @@ function updateConnectMessage() {
 const PLAYBACK_MODE_KEY = 'spotify_playback_mode';
 
 const setButtonLabel = (button, label) => {
-    let labelElement = button.querySelector('.playback-choice-label');
-    if (!labelElement) {
-        labelElement = document.createElement('span');
-        labelElement.className = 'playback-choice-label';
-        button.replaceChildren(labelElement);
-    }
-    if (labelElement) labelElement.textContent = label;
+    const labelElement = document.createElement('span');
+    labelElement.className = 'playback-choice-label';
+    labelElement.textContent = label;
+    button.replaceChildren(labelElement);
     button.dataset.deviceId = '';
     button.style.display = 'flex';
 };
@@ -102,6 +104,7 @@ const showConnectDevices = async () => {
             button.classList.add('connect-device');
             button.title = `${device.type}${device.is_active ? ' (active)' : ''}`;
         });
+        addDeviceSelectorBackButton(buttons);
 
         if (!devices.length) {
             setButtonLabel(buttons[0], 'NO DEVICES FOUND');
@@ -110,17 +113,30 @@ const showConnectDevices = async () => {
     } catch (error) {
         console.error('Error fetching Spotify devices:', error);
         setButtonLabel(buttons[0], 'RETRY CONNECT');
+        addDeviceSelectorBackButton(buttons);
         document.getElementById('connectMessage').textContent = 'Spotify Connect devices unavailable';
     }
+};
+
+const addDeviceSelectorBackButton = (buttons) => {
+    const backButton = buttons[12];
+    backButton.replaceChildren();
+    backButton.dataset.selectorBack = 'true';
+    backButton.classList.add('playback-choice');
+    setButtonLabel(backButton, 'BACK');
+    backButton.onclick = null;
+    backButton.title = 'Return without changing playback device';
 };
 
 const showDeviceSelector = async () => {
     const buttons = document.querySelectorAll('#mainButtonSection .button');
     buttons.forEach(button => {
-        button.style.display = 'none';
+        button.style.display = 'flex';
+        button.replaceChildren();
         delete button.dataset.trackUri;
         delete button.dataset.deviceId;
         delete button.dataset.playbackMode;
+        button.classList.remove('playback-choice', 'connect-device');
     });
 
     const browserButton = buttons[0];
@@ -137,10 +153,12 @@ const showDeviceSelector = async () => {
             button.classList.add('connect-device', 'playback-choice');
             button.title = `${device.type}${device.is_active ? ' (active)' : ''}`;
         });
+        addDeviceSelectorBackButton(buttons);
         document.getElementById('connectMessage').textContent = 'Choose a playback device';
     } catch (error) {
         console.error('Error fetching Spotify devices:', error);
         setButtonLabel(buttons[1], 'DEVICES UNAVAILABLE');
+        addDeviceSelectorBackButton(buttons);
         document.getElementById('connectMessage').textContent = 'Spotify Connect devices unavailable';
     }
     document.getElementById('connectMessage').style.display = 'block';

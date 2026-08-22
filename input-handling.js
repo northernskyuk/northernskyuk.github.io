@@ -33,11 +33,18 @@ function initInputHandling() {
             selectPlaybackTarget(playbackButton);
             return;
         }
+        const selectorBackButton = event.target.closest('[data-selector-back]');
+        if (selectorBackButton) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            window.location.reload();
+            return;
+        }
         const deviceButton = event.target.closest('[data-device-id]');
         if (deviceButton && deviceButton.dataset.deviceId) {
             selectConnectDevice(deviceButton.dataset.deviceId);
         }
-    });
+    }, true);
 
     const playButton = document.getElementById('togglePlay');
     let deviceSelectorTimer = null;
