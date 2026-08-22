@@ -43,9 +43,21 @@ function updateConnectMessage() {
 const PLAYBACK_MODE_KEY = 'spotify_playback_mode';
 
 const setButtonLabel = (button, label) => {
-    button.textContent = label;
+    let labelElement = button.querySelector('.playback-choice-label');
+    if (!labelElement) {
+        labelElement = document.createElement('span');
+        labelElement.className = 'playback-choice-label';
+        button.replaceChildren(labelElement);
+    }
+    if (labelElement) labelElement.textContent = label;
     button.dataset.deviceId = '';
     button.style.display = 'flex';
+};
+
+const hidePlaybackChoiceLabels = () => {
+    document.querySelectorAll('.playback-choice-label').forEach(label => {
+        label.style.display = 'none';
+    });
 };
 
 const showPlaybackChoice = () => {
@@ -78,6 +90,7 @@ const showConnectDevices = async () => {
             const button = buttons[index];
             setButtonLabel(button, device.name);
             button.dataset.deviceId = device.id;
+            button.classList.add('connect-device');
             button.title = `${device.type}${device.is_active ? ' (active)' : ''}`;
         });
 
@@ -164,8 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!playbackMode) {
         showPlaybackChoice();
     } else if (playbackMode === 'connect') {
+        hidePlaybackChoiceLabels();
         fetchPlayQueue();
         window.playbackSetupComplete = true;
+    } else {
+        hidePlaybackChoiceLabels();
     }
     bindConnectControls();
     updateConnectMessage();

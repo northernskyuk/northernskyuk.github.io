@@ -120,6 +120,34 @@ height: 168px;
     box-shadow: inset 0px 0px 10px rgba(0, 255, 255, 0.2);
 }
 
+.playback-choice {
+    background-color: #00566d;
+    color: #00e5ff;
+    box-shadow: inset 0px 0px 10px rgba(0, 229, 255, 0.35);
+}
+
+.playback-choice-label {
+    max-width: 100%;
+    padding: 0 10px;
+    color: #00e5ff;
+    font-size: 22px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    text-align: center;
+}
+
+.connect-device {
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.connect-device .playback-choice-label {
+    max-height: 5.4em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 18px;
+}
+
 .button:hover {
     background-color: #333;
     transform: scale(1.05); /* Slight scaling on hover */
