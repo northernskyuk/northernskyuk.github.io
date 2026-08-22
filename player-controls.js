@@ -98,7 +98,11 @@ function updateState() {
 function startConnectStatePolling() {
     if (connectStateTimer) clearInterval(connectStateTimer);
     updateState();
-    connectStateTimer = setInterval(updateState, 5000);
+    fetchPlayQueue();
+    connectStateTimer = setInterval(() => {
+        updateState();
+        fetchPlayQueue();
+    }, 5000);
 }
 
 function ensureSpotifyAuth() {
@@ -306,7 +310,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         console.log('Ready with Device ID', device_id);
         localStorage.setItem('device_id', device_id);
         setSelectedDeviceId(device_id);
-        transferPlayback(device_id).catch(error => {
+        transferPlayback(device_id, true).catch(error => {
             console.error('Error transferring playback to browser:', error);
         });
     });

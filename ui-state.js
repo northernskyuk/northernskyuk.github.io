@@ -66,9 +66,13 @@ const hidePlaybackChoiceLabels = () => {
 };
 
 const showPlaybackGrid = () => {
-    document.querySelectorAll('#mainButtonSection .button').forEach(button => {
+    const buttons = document.querySelectorAll('#mainButtonSection .button');
+    buttons.forEach(button => {
         button.style.display = 'flex';
     });
+    buttons[0].removeAttribute('id');
+    buttons[1].removeAttribute('id');
+    buttons.forEach(button => delete button.dataset.setupChoice);
 };
 
 const showPlaybackChoice = () => {
