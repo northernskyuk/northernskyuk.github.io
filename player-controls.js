@@ -1,6 +1,7 @@
 const POINTER_LONG_PRESS_MS = 500;
 const KEYBOARD_LONG_PRESS_MS = 1200;
 const QUEUE_SKIP_STEP_DELAY_MS = 220;
+const QUEUE_REFRESH_DELAY_MS = 1000;
 let queueSkipInProgress = false;
 let progressTimer = null;
 let currentPosition = 0;
@@ -241,11 +242,13 @@ function bindConnectControls() {
     };
     document.getElementById('previousTrack').onclick = async () => {
         await sendPlaybackCommand('previous');
+        await wait(QUEUE_REFRESH_DELAY_MS);
         await fetchPlayQueue();
         updateState();
     };
     document.getElementById('nextTrack').onclick = async () => {
         await sendPlaybackCommand('next');
+        await wait(QUEUE_REFRESH_DELAY_MS);
         await fetchPlayQueue();
         updateState();
     };

@@ -189,7 +189,7 @@ const selectPlaybackTarget = async (button) => {
 
 const selectConnectDevice = async (deviceId) => {
     try {
-        await transferPlayback(deviceId);
+        await transferPlayback(deviceId, true);
         setSelectedDeviceId(deviceId);
         localStorage.setItem(PLAYBACK_MODE_KEY, 'connect');
         window.location.reload();

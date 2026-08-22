@@ -19,11 +19,13 @@ function initInputHandling() {
     document.getElementById('search3').addEventListener('click', toggleSearchMode);
     document.getElementById('browserPlayback').addEventListener('click', (event) => {
         if (event.currentTarget.dataset.setupChoice === 'true') {
+            event.stopImmediatePropagation();
             selectPlaybackMode('browser');
         }
     });
     document.getElementById('connectPlayback').addEventListener('click', (event) => {
         if (event.currentTarget.dataset.setupChoice === 'true') {
+            event.stopImmediatePropagation();
             selectPlaybackMode('connect');
         }
     });
